@@ -1,6 +1,6 @@
 # PopGenClass
 
-### 1. Coalescent trees, Allele Frequency Spectrum, and Demography
+### 1. Coalescent trees, Allele Frequency Spectra, and Demography
 
 [class notes](https://docs.google.com/document/d/1z1oi6uJWs3pppOgeZSsU6SaR7SXKfhyD6OJQfFRmDK4/edit?usp=sharing)
 
