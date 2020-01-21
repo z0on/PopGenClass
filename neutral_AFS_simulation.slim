@@ -1,0 +1,28 @@
+// set up a simple neutral simulation
+initialize() {
+// can have crazy high mutation rate here just to throw mutations into populaiton at the start of simulation
+	initializeMutationRate(1e-4);
+	
+	// m1 mutation type: neutral
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	
+	// g1 genomic element type: uses m1 for all mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	
+	// uniform chromosome of length 100 kb with uniform recombination
+	initializeGenomicElement(g1, 0, 99);
+	initializeRecombinationRate(0.5);
+}
+
+// create a population of 500 individuals
+1 {
+	sim.addSubpop("p1", 500);
+}
+
+// switching to normal mutation rate
+2 late() { sim.chromosome.setMutationRate(1e-4); }
+
+// changing population size - watch mutation frequency spectrum and mutation trajectories
+10000 late() { p1.setSubpopulationSize(50); }
+11000 late() { p1.setSubpopulationSize(500); }
+13000 late() { sim.outputFixedMutations(); }
