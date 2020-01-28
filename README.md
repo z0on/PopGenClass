@@ -8,7 +8,8 @@
 
 [lecture slides](https://docs.google.com/presentation/d/1E2ezo4E9vBRMuogzZKLcE0WNxO_yn-MpKl7GPDTnGWc/edit?usp=sharing)
 
-# Needed scripts: 
+#### Needed scripts: 
   popgen2020_installations.sh
+  
   popgen2020_reads2bams.sh
   
