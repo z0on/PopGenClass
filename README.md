@@ -13,3 +13,7 @@
   
   popgen2020_reads2bams.sh
   
+### 3. Detecting selection in single population
+
+[lecture slides](https://drive.google.com/file/d/1cM3Uj8CmXePYUtoYaVMKkBJZ6d-VhMo3/view?usp=sharing)
+
