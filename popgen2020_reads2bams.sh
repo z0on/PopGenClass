@@ -12,7 +12,6 @@ SAFs, ibsMat, OK_dadi.data (just in case, dont download them yet):
 /corral-repl/utexas/tagmap/matz_shared/OK/
 
 BEFORE STARTING, replace, in this whole file:
-	- matz@utexas.edu by your actual email;
 	- yourusername with your TACC user name.
 
 The idea is to copy the chunks separated by empty lines below and paste them into your cluster 
@@ -48,7 +47,7 @@ cd
 
 # ----- configuring your environment
 
-# adding ~/bin to your $PATH; loading gmodules
+# adding ~/bin to your $PATH; loading modules
 cd
 nano .bashrc
 
@@ -64,6 +63,13 @@ nano .bashrc
 	module load cutadapt
 # press ctl-O, Enter, ctl-X
 
+
+# re-login
+
+# does it work?
+# try running:
+2bRAD_trim_launch.pl
+# if you get "command not found" something is wrong
 
 #==============================
 
@@ -88,42 +94,6 @@ scp cmonstr@ranch.tacc.utexas.edu:/samfs/fs1/01211/cmonstr/OK_concatenated.tgz .
 bg %
 # to send the copying process to the background. Proceed with the walkthrough while the data are copied.
 
-# downloading and installing 2bRAD scripts in $HOME/bin
-cd
-mkdir bin # make bin directory
-cd bin # go there
-# cloning github repository
-git clone https://github.com/z0on/2bRAD_denovo.git
-mv 2bRAD_denovo/* . # move it to here from sub-directory
-rm -rf 2bRAD_denovo # remove now-empty directory
-
-# designating all .pl and .py files (perl and python scripts) as executable
-chmod +x *.pl 
-chmod +x *.py
-
-# adding ~/bin to your $PATH (plus invoking a bunch of pre-loaded modules)
-cd
-nano .bashrc
-	#paste this in the appropriate section:
-module load java
-module load Rstats
-module load cd-hit
-module load python
-module load bioperl
-module load samtools
-module load bowtie
-module load cutadapt 
-
-export PATH="~/bin:$PATH"
-
-	# press ctl-O, Enter, ctl-X
-
-# re-login
-
-# does it work?
-# try running:
-2bRAD_trim_launch.pl
-# if you get "command not found" something is wrong
 
 # switch to where the data are:
 cds
@@ -151,7 +121,7 @@ echo "cutadapt -a AGATCGGA --format fastq -q 15,15 -m 25 -o ${file/.fq/}.trim $f
 done
 
 # creating job script based on commands in filt:
-ls5_launcher_creator.py -j filt -n filt -t 0:15:00 -a mega2014 -e matz@utexas.edu -w 48 -N 3
+ls5_launcher_creator.py -j filt -n filt -t 0:15:00 -a tagmap -e youremail@utexas.edu -w 48 -N 3
 # submitting job :
 sbatch filt.slurm
 
@@ -176,7 +146,7 @@ grep @HWI O9.fq | wc -l
 
 # switching to $WORK, moving genome here
 
-cds
+cdw
 mkdir db
 cd db
 #cdw db/
@@ -191,11 +161,12 @@ export GENOME_FASTA=$SCRATCH/db/amilV2_chroms.fasta
 
 # indexing genome for bowtie2 mapper
 echo "bowtie2-build $GENOME_FASTA $GENOME_FASTA" >btb
-ls5_launcher_creator.py -j btb -n btb -l btbl -t 0:30:00 -a mega2014 -e matz@utexas.edu -w 1
+ls5_launcher_creator.py -j btb -n btb -l btbl -t 0:30:00 -a tagmap -e youremail@utexas.edu -w 1
 sbatch btbl
 
 # samtools index (this one is fast, can run on login node)
 samtools faidx $GENOME_FASTA
+
 
 #------------ Mapping and compressing into bam files
 cds
@@ -209,7 +180,7 @@ echo "bowtie2 --no-unal --score-min L,16,1 --local -L 16 -x $GENOME_FASTA -U $fi
 samtools sort -O bam -o ${file/.trim/}.bam ${file/.trim/}.sam && samtools index ${file/.trim/}.bam " >> maps2;
 done
 
-ls5_launcher_creator.py -j maps2 -n maps2 -t 6:00:00 -w 24 -a mega2014 -e matz@utexas.edu -q normal
+ls5_launcher_creator.py -j maps2 -n maps2 -t 6:00:00 -w 24 -a tagmap -e youremail@utexas.edu -q normal
 sbatch maps.slurm
 
 # what are those sam files? 
