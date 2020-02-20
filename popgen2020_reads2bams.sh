@@ -157,7 +157,7 @@ cp /corral-repl/utexas/tagmap/matz_shared/OK/amilV2_chroms.fasta .
 # call Misha to punch in password
 
 # creating shortcut to the genome file
-export GENOME_FASTA=$SCRATCH/db/amilV2_chroms.fasta
+export GENOME_FASTA=$WORK/db/amilV2_chroms.fasta
 
 # indexing genome for bowtie2 mapper
 echo "bowtie2-build $GENOME_FASTA $GENOME_FASTA" >btb
@@ -201,8 +201,5 @@ cat maps.e*
 ls *bam | wc -l  
 
 # done! ready for fun stuff.
-
-
-
 
 
