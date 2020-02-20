@@ -17,3 +17,7 @@
 
 [lecture slides](https://drive.google.com/file/d/1cM3Uj8CmXePYUtoYaVMKkBJZ6d-VhMo3/view?usp=sharing)
 
+### 4. GWAS and other ways to associate genotype with phenotype
+
+[lecture slides](https://drive.google.com/file/d/1Zr6-6Higj0e7ETznCG_tcr_IAQFPwC4g/view?usp=sharing)
+
