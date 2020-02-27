@@ -17,7 +17,8 @@ pheatmap(1-ibs)
 pp=capscale(ibs~1)
 
 # eigenvalues:
-plot(pp$CA$eig/sum(pp$CA$eig))
+plot(pp$CA$eig,ylab="proportion of variance explained",xlab="eigenvector #")
+plot(pp$CA$eig/sum(pp$CA$eig),ylab="proportion of variance explained",xlab="eigenvector #")
 lines(bstick(length(pp$CA$eig)),col="red") # "broken stick" model: expected random distribution of eigenvalues
 
 axes2plot=c(1,2)
