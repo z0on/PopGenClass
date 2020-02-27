@@ -25,6 +25,7 @@ git clone https://github.com/samtools/htslib.git
 cd htslib
 make CFLAGS=" -g -Wall -O2 -D_GNU_SOURCE -I$HOME/xz-5.2.3/include"
 
+# install ANGSD
 cd
 git clone https://github.com/ANGSD/angsd.git 
 cd angsd
@@ -38,46 +39,29 @@ nano .bashrc
    export PATH=$HOME/angsd/misc:$PATH
 # save (Ctl-O, Ctl-X)
 
--------  NGSadmix :
+# ------- install NGSadmix :
 cd ~/bin/
 wget popgen.dk/software/download/NGSadmix/ngsadmix32.cpp 
 g++ ngsadmix32.cpp -O3 -lpthread -lz -o NGSadmix
 cd -
 
--------  ngsRelate :
-cd 
-git clone https://github.com/ANGSD/NgsRelate.git
-cd NgsRelate
-make HTSSRC=../htslib
-cp ngs* ~/bin/
-cd
-
------- ngsLD :
-
-cd 
-git clone https://github.com/fgvieira/ngsLD.git
-cd ngsLD
-
-nano Makefile
-add -I${TACC_GSL_INC}  to CC and CXX macros (CFLAGS= ...);
-and -L${TACC_GSL_LIB} to the 'LIB = ...' line.
-
-module load gsl
-export PKG_CONFIG_PATH=/opt/apps/intel18/gsl/2.2.1/lib/pkgconfig/
-make
-cp ngsLD ~/bin
-
--------  stairwayPlot :
-
-# project page: https://sites.google.com/site/jpopgen/stairway-plot
-cdw
-# get version from June 2016 (v2beta2)
-wget https://www.dropbox.com/s/toxnlvk8rhe1p5h/stairway_plot_v2beta2.zip
-unzip stairway_plot_v2beta2.zip
-mv stairway_plot_v2beta2 stairway_plot_v2beta
-
+#-------------
 
 ls *.bam > bams
+
+# first we need to remove clones
+# here is a table of clonal pairs:
+K210.bam	K212.bam
+K212.bam	K213.bam
+K213.bam	K216.bam
+K211.bam	K219.bam
+K4.bam	O5.bam
+O5.bam	K4.bam
+
+# >>> use nano to manually remove filenames listed in the SECOND column above from bams file 
+# count the remaining bam files listed
+cat bams | wc -l
+# should be 62
 
 
 #===================== A  N  G  S  D =====================

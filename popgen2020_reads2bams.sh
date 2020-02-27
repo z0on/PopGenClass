@@ -120,6 +120,9 @@ for file in *.fq; do
 echo "cutadapt -a AGATCGGA --format fastq -q 15,15 -m 25 -o ${file/.fq/}.trim $file > ${file}_trimlog.txt" >> filt;
 done
 
+# just in case, making sure cutadapt module is loaded:
+module load cutadapt 
+
 # creating job script based on commands in filt:
 ls5_launcher_creator.py -j filt -n filt -t 0:15:00 -a tagmap -e youremail@utexas.edu -w 48 -N 3
 # submitting job :
@@ -171,16 +174,16 @@ samtools faidx $GENOME_FASTA
 #------------ Mapping and compressing into bam files
 cds
 cd RAD
-export GENOME_FASTA=$SCRATCH/db/amilV2_chroms.fasta
+export GENOME_FASTA=$WORK/db/amilV2_chroms.fasta
 
 # map with bowtie2 with soft-clipping (to avoid indel artifacts near read ends) and modified settings for better mapping of short 2bRAD tags
->maps2
+>maps
 for file in *.trim; do 
 echo "bowtie2 --no-unal --score-min L,16,1 --local -L 16 -x $GENOME_FASTA -U $file -S ${file/.trim/}.sam && \
-samtools sort -O bam -o ${file/.trim/}.bam ${file/.trim/}.sam && samtools index ${file/.trim/}.bam " >> maps2;
+samtools sort -O bam -o ${file/.trim/}.bam ${file/.trim/}.sam && samtools index ${file/.trim/}.bam " >> maps;
 done
 
-ls5_launcher_creator.py -j maps2 -n maps2 -t 6:00:00 -w 24 -a tagmap -e youremail@utexas.edu -q normal
+ls5_launcher_creator.py -j maps -n maps -t 6:00:00 -w 24 -a tagmap -e youremail@utexas.edu -q normal
 sbatch maps.slurm
 
 # what are those sam files? 
@@ -196,6 +199,16 @@ cat maps.e*
     1641138 (31.00%) aligned exactly 1 time
     2596129 (49.04%) aligned >1 times
 80.05% overall alignment rate
+
+# next stage is compressing, sorting and indexing the SAM files, so they become BAM files:
+module load samtools
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+ls5_launcher_creator.py -j s2b -n s2b -t 1:00:00 -w 24 -a tagmap -e youremail@utexas.edu -q normal
+sbatch s2b.slurm
 
 # sanity check: number of bam files should be the same number as number of sam files 
 ls *bam | wc -l  
