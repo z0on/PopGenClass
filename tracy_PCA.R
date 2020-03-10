@@ -1,3 +1,4 @@
+install.packages("vegan")
 library(ggplot2)
 library(vegan)
 library(pheatmap)
@@ -12,9 +13,11 @@ ibs=as.matrix(read.table("angsd-2-5-20.ibsMat"))
 dimnames(ibs)=list(mice$ID,mice$ID)
 # heatmap of the matrix, with hierarchical clustering
 pheatmap(1-ibs)
+pheatmap(ibs)
 
 # unconstrained ordination (PCoA)
 pp=capscale(ibs~1)
+str(pp)
 
 # eigenvalues:
 plot(pp$CA$eig,ylab="proportion of variance explained",xlab="eigenvector #")
@@ -25,6 +28,7 @@ axes2plot=c(1,2)
 scores=data.frame(pp$CA$u[,axes2plot])
 
 # plotting in ggplot:
+quartz()
 ggplot(scores,aes(scores[,1],scores[,2],color=site)) + geom_point(alpha=0.5)+theme_bw()+xlab(names(scores)[1])+ylab(names(scores)[2])+coord_equal()
 
 # testing significance of by-site divergence

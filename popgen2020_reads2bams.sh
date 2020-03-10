@@ -184,7 +184,7 @@ samtools sort -O bam -o ${file/.trim/}.bam ${file/.trim/}.sam && samtools index 
 done
 
 ls5_launcher_creator.py -j maps -n maps -t 6:00:00 -w 24 -a tagmap -e youremail@utexas.edu -q normal
-sbatch maps.slurm
+sbatch maps2.slurm
 
 # what are those sam files? 
 less -S K10.sam
