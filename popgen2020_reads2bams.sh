@@ -56,7 +56,7 @@ nano .bashrc
 
 # and this, into another section
 	module load Rstats
-	module load python
+	#module load python
 	module load samtools
 	module load bedtools
 	module load bowtie
@@ -124,12 +124,16 @@ done
 module load cutadapt 
 
 # creating job script based on commands in filt:
-ls5_launcher_creator.py -j filt -n filt -t 0:15:00 -a tagmap -e youremail@utexas.edu -w 48 -N 3
+ls5_launcher_creator.py -j filt -n filt -t 0:15:00 -a tagmap -e youremail@utexas.edu -w 48 -N 3 
 # submitting job :
 sbatch filt.slurm
 
 # how is our job doing?
 squeue -u yourusername
+
+ll -tr
+
+module spider
 
 # Done! do we have the right number of output files?
 ll *.fq | wc -l # this is how many fastq and fq files we started with
