@@ -33,5 +33,9 @@
 
 [lecture slides](https://docs.google.com/presentation/d/1aQItFBn-UHdooT6c9LZoWxF09NHOiyDadDs93I16ALA/edit?usp=sharing)
 
+script: SNP-based_heritability_tracy.R
+
+
+
 
 
