@@ -29,3 +29,9 @@
 
 [lecture slides](https://docs.google.com/presentation/d/1ToNtKicd3OzT9G2fEWh_N9M871hS2m3KQ1XRGByzYow/edit?usp=sharing)
 
+### 7. SNP-based heritability
+
+[lecture slides](https://docs.google.com/presentation/d/1aQItFBn-UHdooT6c9LZoWxF09NHOiyDadDs93I16ALA/edit?usp=sharing)
+
+
+
