@@ -35,6 +35,9 @@
 
 script: SNP-based_heritability_tracy.R
 
+### 8. Genome parts with a different story 
+
+[lecture slides](https://docs.google.com/presentation/d/13YfacQNkTsk1iZS0Zm8QScd3u8sJotoOE-wXaYX_RFw/edit?usp=sharing)
 
 
 
