@@ -21,21 +21,25 @@
 
 [lecture slides](https://drive.google.com/file/d/1Zr6-6Higj0e7ETznCG_tcr_IAQFPwC4g/view?usp=sharing)
 
-### 5. Putting genetic variation on the map
+### 5. Population structure
+
+[lecture slides](https://drive.google.com/open?id=1oBlkRO60rYm8JdPWbs4EmflxWku5dd9N)
+
+### 6. Putting genetic variation on the map
 
 [lecture slides](https://drive.google.com/file/d/1UcYXWaKyYjz3HcEs2qWbYjKlWKTHY6P3/view?usp=sharing)
 
-### 6. Detecting selection in multiple populations
+### 7. Detecting selection in multiple populations
 
 [lecture slides](https://docs.google.com/presentation/d/1ToNtKicd3OzT9G2fEWh_N9M871hS2m3KQ1XRGByzYow/edit?usp=sharing)
 
-### 7. SNP-based heritability
+### 8. SNP-based heritability
 
 [lecture slides](https://docs.google.com/presentation/d/1aQItFBn-UHdooT6c9LZoWxF09NHOiyDadDs93I16ALA/edit?usp=sharing)
 
 script: SNP-based_heritability_tracy.R
 
-### 8. Genome parts with a different story 
+### 9. Genome parts with different stories 
 
 [lecture slides](https://docs.google.com/presentation/d/13YfacQNkTsk1iZS0Zm8QScd3u8sJotoOE-wXaYX_RFw/edit?usp=sharing)
 
