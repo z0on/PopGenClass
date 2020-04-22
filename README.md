@@ -43,6 +43,8 @@ script: SNP-based_heritability_tracy.R
 
 [lecture slides](https://docs.google.com/presentation/d/13YfacQNkTsk1iZS0Zm8QScd3u8sJotoOE-wXaYX_RFw/edit?usp=sharing)
 
+### CLASS PROJECTS
 
+[potential class projects](https://docs.google.com/spreadsheets/d/1VZxFSdxvRGImag_pswNJqmX6dvHyHC0PPjq82MjFfLE/edit?usp=sharing)
 
 
