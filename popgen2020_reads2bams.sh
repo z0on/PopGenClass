@@ -22,6 +22,7 @@ please make sure to read them before copy-pasting.
 
 ==============================================
 
+# set up two-factor 
 # login to TACC
 ssh yourusername@ls5.tacc.utexas.edu
 
