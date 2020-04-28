@@ -43,6 +43,10 @@ script: SNP-based_heritability_tracy.R
 
 [lecture slides](https://docs.google.com/presentation/d/13YfacQNkTsk1iZS0Zm8QScd3u8sJotoOE-wXaYX_RFw/edit?usp=sharing)
 
+### 10. More on the omnigenic model 
+
+[lecture slides](https://docs.google.com/presentation/d/1jiHWv1xNPOKqgKT9kAcWnW99bSvNG7iOp4bVQfqxg9I/edit?usp=sharing)
+
 ### CLASS PROJECTS
 
 [potential class projects](https://docs.google.com/spreadsheets/d/1VZxFSdxvRGImag_pswNJqmX6dvHyHC0PPjq82MjFfLE/edit?usp=sharing)
