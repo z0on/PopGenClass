@@ -87,7 +87,7 @@ export MatchFrac=0.95 # liberally assuming up to 5% divergence
 export GENOME_REF=all_cc.fasta 
 # if you have a real reference genome, put its filename above with full path, don't forget to index it (make a job out of it tho): 
 # bowtie2-build mygenome.fasta mygenome.fasta && samtools faidx mygenome.fasta
-# you will then skip lines 103-120
+# you will then skip lines 100-117
 
 # trimming and subsampling to 3M filtered reads max
 >trim
