@@ -71,7 +71,7 @@ esearch -db sra -query $BioProject | efetch --format runinfo |cut -d "," -f 1 | 
 
 >gets
 for A in `cat $BioProject.SRR`;do echo "fastq-dump-orig.2.10.0 $A">>gets;done
-ls5_launcher_creator.py -j gets -n gets -a divdiv -e matz@utexas.edu -t 6:00:00 -w 24 -q normal
+ls5_launcher_creator.py -j gets -n gets -a tagmap -e matz@utexas.edu -t 6:00:00 -w 24 -q normal
 getsjob=$(sbatch gets.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 #---- CHUNK 2: processing fastq files (fastq -> bams)
@@ -94,25 +94,25 @@ export GENOME_REF=all_cc.fasta
 for file in *.fastq; do
 echo "cutadapt --format fastq -q 15,15 -a AGATCGGA  -m $TagLen -l $TagLen -o ${file/.fastq/}.trim0 $file > ${file}_trimlog.txt && head -12000000 ${file/.fastq/}.trim0 > ${file/.fastq/}.trim && rm ${file/.fastq/}.trim0" >> trim;
 done
-ls5_launcher_creator.py -j trim -n trim -a divdiv -e matz@utexas.edu -t 1:00:00 -w 48 -q normal
+ls5_launcher_creator.py -j trim -n trim -a tagmap -e matz@utexas.edu -t 1:00:00 -w 48 -q normal
 trimjob=$(sbatch trim.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # converting fastq to fasta (for kmer analysis)
 >f2f
 for F in `ls *fastq`; do echo "paste - - - - < ${F/.fastq/}.trim | cut -f 1,2 | sed 's/^@/>/' | tr \"\t\" \"\n\" > ${F/.fastq/}.fasta" >>f2f ;done
-ls5_launcher_creator.py -j f2f -n f2f -a divdiv -e matz@utexas.edu -t 0:05:00 -w 48 -q normal
+ls5_launcher_creator.py -j f2f -n f2f -a tagmap -e matz@utexas.edu -t 0:05:00 -w 48 -q normal
 f2fjob=$(sbatch --dependency=afterok:$trimjob f2f.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # analyzing kmers, removing singletons from each file (kmerer.pl)
 >jelly
 for F in `ls *fastq`; do echo "jellyfish count -m $TagLen -s 100M -t 1 -C ${F/.fastq/}.fasta -o ${F/.fastq/}.jf && jellyfish dump ${F/.fastq/}.jf | kmerer.pl - 2 > ${F/.fastq/}.kmers.fa">>jelly;done
-ls5_launcher_creator.py -j jelly -n jelly -a divdiv -e matz@utexas.edu -t 0:10:00 -w 24 -q normal
+ls5_launcher_creator.py -j jelly -n jelly -a tagmap -e matz@utexas.edu -t 0:10:00 -w 24 -q normal
 jellyjob=$(sbatch --dependency=afterok:$f2fjob jelly.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # merging kmer lists and filtering kmers aiming to get major alleles
 # clustering, concatenating into fake genome (10 chromosomes), and indexing it
 echo "ls *kmers.fa > all.kf && mergeKmers.pl all.kf minDP=10 minInd=10 | shuf | awk '{print \">\"\$1\"\n\"\$2}' > all.fasta && cd-hit-est -i all.fasta -o all.clust -aL 1 -aS 1 -g 1 -c $MatchFrac -M 0 -T 0 && concatFasta.pl fasta=all.clust num=10 && bowtie2-build all_cc.fasta all_cc.fasta && samtools faidx all_cc.fasta" >mk
-ls5_launcher_creator.py -j mk -n mk -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j mk -n mk -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 mergejob=$(sbatch --dependency=afterok:$jellyjob  mk.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 #mergejob=$(sbatch mk.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
@@ -122,7 +122,7 @@ for F in `ls *.fastq`; do
 REF=all_cc.fasta
 echo "bowtie2 --no-unal -x $REF -U ${F/.fastq/}.trim -S ${F/.fastq/}.sam && samtools sort -O bam -o ${F/.fastq/}.bam ${F/.fastq/}.sam && samtools index ${F/.fastq/}.bam">>maps
 done
-ls5_launcher_creator.py -j maps -n maps -a divdiv -e matz@utexas.edu -t 2:00:00 -w 24 -q normal
+ls5_launcher_creator.py -j maps -n maps -a tagmap -e matz@utexas.edu -t 2:00:00 -w 24 -q normal
 mapsjob=$(sbatch --dependency=afterok:$mergejob  maps.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # quality assessment, removing bams with log(coverage)<3SD
@@ -130,7 +130,7 @@ mapsjob=$(sbatch --dependency=afterok:$mergejob  maps.slurm | grep "Submitted ba
 FILTERSQ="-uniqueOnly 1 -remove_bads 1 -minMapQ 20"
 TODOQ="-doQsDist 1 -doDepth 1 -doCounts 1 -dumpCounts 2"
 echo "ls *.bam > bams && angsd -b bams -r chr1 -GL 1 $FILTERSQ $TODOQ -P 12 -out dd && Rscript ~/bin/plotQC.R dd >qualRanks">a0
-ls5_launcher_creator.py -j a0 -n a0 -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j a0 -n a0 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 qjob=$(sbatch --dependency=afterok:$mapsjob a0.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 #------------ examine dd.pdf, decide on MinIndPerc and whether bams.qc is reasonable
@@ -145,7 +145,7 @@ FILTERS0='-minInd $MI -uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 20 -snp_pva
 TODO0='-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doPost 1 -doGlf 2'
 echo 'export NIND=`cat bams.qc | wc -l`; export MI=`echo "($NIND*$MinIndPerc+0.5)/1" | bc`' >calc1
 echo "source calc1 && angsd -b bams.qc -GL 1 $FILTERS0 $TODO0 -P 12 -out myresult && Rscript ~/bin/detect_clones.R bams.qc myresult.ibsMat 0.15">a1
-ls5_launcher_creator.py -j a1 -n a1 -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j a1 -n a1 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 a1job=$(sbatch --dependency=afterok:$qjob a1.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 #a1job=$(sbatch a1.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
@@ -158,14 +158,14 @@ FILTERS1='-minInd $MI2 -uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 20 -snp_pv
 TODO1='-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doPost 1 -doGlf 2'
 echo 'cat bams.nr | sort > bams.NR && mv bams.NR bams.nr && export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND2*$MinIndPerc+0.5)/1" | bc`' >calc2
 echo "source calc2 && angsd -b bams.nr -GL 1 $FILTERS1 $TODO1 -P 12 -out myresult2 && Rscript ~/bin/pcaStructure.R myresult2.ibsMat > pcaStruc.txt">a2
-ls5_launcher_creator.py -j a2 -n a2 -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 
+ls5_launcher_creator.py -j a2 -n a2 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 
 -q normal
 a2job=$(sbatch --dependency=afterok:$a1job a2.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 #a2job=$(sbatch  a2.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # ADMIXTURE
 echo 'for K in `seq 2 10` ; do  NGSadmix -likes myresult2.beagle.gz -K $K -P 12 -o mydata_k${K}; done' >adm
-ls5_launcher_creator.py -j adm -n adm -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j adm -n adm -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 admjob=$(sbatch --dependency=afterok:$a2job adm.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # producing sfs for heterozygosity and theta (only for half a megabase of chr5, for speed and memory reasons)
@@ -174,19 +174,19 @@ FILTERS='-minInd $MI2 -uniqueOnly 1 -skipTriallelic 1 -minMapQ 20 -minQ 20 -doHW
 TODO="-doSaf 1 -anc $REF -ref $REF -doMajorMinor 1 -doMaf 1 -dosnpstat 1 -doPost 1 -doGlf 2"
 echo 'export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND*$MinIndPerc+0.5)/1" | bc`' >calc2
 echo "source calc2 && angsd -b bams.nr -r chr5:1-500000 -GL 1 -P 12 $FILTERS $TODO -out chr5">sfsj
-ls5_launcher_creator.py -j sfsj -n sfsj -t 2:00:00 -e matz@utexas.edu -w 1 -a divdiv -q normal
+ls5_launcher_creator.py -j sfsj -n sfsj -t 2:00:00 -e matz@utexas.edu -w 1 -a tagmap -q normal
 sfsjob=$(sbatch --dependency=afterok:$a1job sfsj.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 #sfsjob=$(sbatch sfsj.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # thetaStats: genetic diversity and neutrality statistics like Tajima's D
 TODO="-doSaf 1 -doThetas 1 -anc $REF -ref $REF"
 echo "zcat chr5.mafs.gz | cut -f 1,2 | tail -n +2 >chr5.sites && realSFS chr5.saf.idx > chr5.sfs && angsd sites index chr5.sites && angsd -b bams.nr -r chr5 -sites chr5.sites -GL 1 -P 12 $TODO -pest chr5.sfs -out chr5s && thetaStat do_stat chr5s.thetas.idx -outnames chr5s" >thet
-ls5_launcher_creator.py -j thet -n thet -t 2:00:00 -e matz@utexas.edu -w 1 -a divdiv -q normal
+ls5_launcher_creator.py -j thet -n thet -t 2:00:00 -e matz@utexas.edu -w 1 -a tagmap -q normal
 thjob=$(sbatch --dependency=afterok:$sfsjob thet.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # individual heterozygosities (proportion of heterozygotes across SNPs that pass sfsjob filters)
 echo "Rscript ~/bin/heterozygosity_beagle.R chr5.beagle.gz" >bg
-ls5_launcher_creator.py -j bg -n bg -a divdiv -e matz@utexas.edu -t 12:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j bg -n bg -a tagmap -e matz@utexas.edu -t 12:00:00 -w 1 -q normal
 sbatch --dependency=afterok:$sfsjob bg.slurm
 
 # pi per "chromosome"
@@ -199,13 +199,13 @@ FILTERS1='-minInd $MI2 -uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 20 -snp_pv
 TODO1='-doMajorMinor 1 -doMaf 1 -doCounts 1 -doPost 1 -doGlf 3'
 echo 'cat bams.nr | sort > bams.NR && mv bams.NR bams.nr && export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND2*$MinIndPerc+0.5)/1" | bc`' >calc2
 echo "source calc2 && angsd -b bams.nr -GL 1 $FILTERS1 $TODO1 -P 12 -out g3">g3
-ls5_launcher_creator.py -j g3 -n g3 -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j g3 -n g3 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 g3job=$(sbatch g3.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 
 # individual inbreeding coeffs
 echo 'zcat g3.glf.gz | ngsF --glf - --n_ind 44 --n_sites 909052 --out inbr' >nf
-ls5_launcher_creator.py -j nf -n nf -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j nf -n nf -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 ngsFjob=$(sbatch --dependency=afterok:$g3job nf.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 #ngsFjob=$(sbatch nf.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
@@ -214,7 +214,7 @@ zcat g3.mafs.gz | cut -f5 |sed 1d >freq
 # relatedness with NgsRelate
 echo 'export NIND2=`cat bams.nr | wc -l`; export NS=``zcat g3.mafs.gz | wc -l`' >calc3
 echo 'source calc3 && zcat g3.mafs.gz | cut -f5 |sed 1d >freq && ngsRelate  -g g3.glf.gz -n $NIND -f freq >g3.relatedness' >rel
-ls5_launcher_creator.py -j rel -n rel -a divdiv -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
+ls5_launcher_creator.py -j rel -n rel -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 reljob=$(sbatch rel.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 
