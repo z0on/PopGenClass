@@ -65,20 +65,27 @@ Add the paths to all newly installed programs to your $PATH (in .bashrc)
 # PRJNA430897 : nymphon
 # PRJNA343959 : porpoise
 
-export BioProject=PRJNA511386
-esearch -db sra -query $BioProject | efetch --format runinfo |cut -d "," -f 1 | grep SRR > $BioProject.SRR && esearch -db sra -query $BioProject | efetch --format runinfo > $BioProject.fullMeta.csv
+export BioProject=PRJNA490084
+$HOME/edirect/esearch -db sra -query $BioProject | efetch --format runinfo |cut -d "," -f 1 | grep SRR > $BioProject.SRR && $HOME/edirect/esearch -db sra -query $BioProject | efetch --format runinfo > $BioProject.fullMeta.csv
 #esearch -db sra -query $BioProject | efetch --format runinfo | cut -f 1,30 -d "," | grep SRR > $BioProject.srr2sample.csv
 
 >gets
-for A in `cat $BioProject.SRR`;do echo "fastq-dump-orig.2.10.0 $A">>gets;done
-ls5_launcher_creator.py -j gets -n gets -a tagmap -e matz@utexas.edu -t 6:00:00 -w 24 -q normal
+for A in `cat $BioProject.SRR`;do 
+echo "fast-dump-orig.2.10.0 $A">>gets;
+done
+ls5_launcher_creator.py -j gets -n gets -a tagmap -e matz@utexas.edu -t 12:00:00 -w 24 -q normal
 getsjob=$(sbatch gets.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
+
+Q= -log10(Perror)*10
+Perror=1% = 0.01 = 1e-2 = 10^(-2)  --> Q=20
+P= 0.1% --> 0.001  Q=30
+
 
 #---- CHUNK 2: processing fastq files (fastq -> bams)
 
 module load cutadapt
 module load jellyfish
-#module load cd-hit
+# module load cd-hit
 module load samtools
 module load bowtie
 
@@ -111,7 +118,7 @@ jellyjob=$(sbatch --dependency=afterok:$f2fjob jelly.slurm | grep "Submitted bat
 
 # merging kmer lists and filtering kmers aiming to get major alleles
 # clustering, concatenating into fake genome (10 chromosomes), and indexing it
-echo "ls *kmers.fa > all.kf && mergeKmers.pl all.kf minDP=10 minInd=10 | shuf | awk '{print \">\"\$1\"\n\"\$2}' > all.fasta && cd-hit-est -i all.fasta -o all.clust -aL 1 -aS 1 -g 1 -c $MatchFrac -M 0 -T 0 && concatFasta.pl fasta=all.clust num=10 && bowtie2-build all_cc.fasta all_cc.fasta && samtools faidx all_cc.fasta" >mk
+echo "ls *kmers.fa > all.kf && mergeKmers.pl all.kf minDP=10 minInd=5 > kmers.tab && cat kmers.tab | shuf | awk '{print \">\"\$1\"\n\"\$2}' > all.fasta && cd-hit-est -i all.fasta -o all.clust -aL 1 -aS 1 -g 1 -c $MatchFrac -M 0 -T 0 && concatFasta.pl fasta=all.clust num=10 && bowtie2-build all_cc.fasta all_cc.fasta && samtools faidx all_cc.fasta" >mk
 ls5_launcher_creator.py -j mk -n mk -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 mergejob=$(sbatch --dependency=afterok:$jellyjob  mk.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 #mergejob=$(sbatch mk.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')

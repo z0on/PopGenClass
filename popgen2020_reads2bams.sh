@@ -56,6 +56,7 @@ nano .bashrc
    export PATH=$HOME/bin:$PATH
 
 # and this, into another section
+	module load launcher
 	module load Rstats
 	#module load python
 	module load samtools
@@ -99,7 +100,10 @@ bg %
 # switch to where the data are:
 cds
 cd RAD
-tar vxf OK_concatenated.tgz &
+idev
+tar vxf OK_concatenated.tgz >>log &
+
+ll | wc -l
 
 # how many  *.fq files we have? (should be 68)
 ll *.fq | wc -l
@@ -109,6 +113,13 @@ ll *.fq | wc -l
 
 # how do the reads look before trimming (displaying top 25 DNA sequences in O9.fq):
 head -100 K11.fq | grep -E "^[ATGCN]+$"
+head K11.fq
+
+#Q=-log10(Perror)*10
+#Perror=0.01=1e-2=10^(-2)
+#Q=-log10(0.01)*10=20
+#0.001 => Q30
+
 # in the line above, we meet grep, one of the most useful linux commands. It finds matches in text files and prints the matching lines. Patterns can be just some word, or a complicated "regular expression" like here: "^[ATGCN]+$", which matches lines composed of entirely A,T,G,C, or N symbols in any combination. Here is your cheat sheet for regular expressions: http://jkorpela.fi/perl/regexp.html 
 
 # removing adaptor and trimming bad quality end-bases using cutadapt
@@ -125,16 +136,12 @@ done
 module load cutadapt 
 
 # creating job script based on commands in filt:
-ls5_launcher_creator.py -j filt -n filt -t 0:15:00 -a tagmap -e youremail@utexas.edu -w 48 -N 3 
+ls5_launcher_creator.py -j filt -n filt -t 0:15:00 -a tagmap -e matz@utexas.edu -w 48 
 # submitting job :
 sbatch filt.slurm
 
 # how is our job doing?
 squeue -u yourusername
-
-ll -tr
-
-module spider
 
 # Done! do we have the right number of output files?
 ll *.fq | wc -l # this is how many fastq and fq files we started with
@@ -169,7 +176,7 @@ export GENOME_FASTA=$WORK/db/amilV2_chroms.fasta
 
 # indexing genome for bowtie2 mapper
 echo "bowtie2-build $GENOME_FASTA $GENOME_FASTA" >btb
-ls5_launcher_creator.py -j btb -n btb -l btbl -t 0:30:00 -a tagmap -e youremail@utexas.edu -w 1
+ls5_launcher_creator.py -j btb -n btb -l btbl -t 0:30:00 -a tagmap -e matz@utexas.edu -w 1
 sbatch btbl
 
 # samtools index (this one is fast, can run on login node)
@@ -188,8 +195,8 @@ echo "bowtie2 --no-unal --score-min L,16,1 --local -L 16 -x $GENOME_FASTA -U $fi
 samtools sort -O bam -o ${file/.trim/}.bam ${file/.trim/}.sam && samtools index ${file/.trim/}.bam " >> maps;
 done
 
-ls5_launcher_creator.py -j maps -n maps -t 6:00:00 -w 24 -a tagmap -e youremail@utexas.edu -q normal
-sbatch maps2.slurm
+ls5_launcher_creator.py -j maps -n maps -t 2:00:00 -w 24 -a tagmap -e matz@utexas.edu
+sbatch maps.slurm
 
 # what are those sam files? 
 less -S K10.sam
