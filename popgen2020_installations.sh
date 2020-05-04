@@ -1,3 +1,9 @@
+#--------- cd-hit:
+
+git clone https://github.com/weizhongli/cdhit.git
+cd cdhit
+make
+
 # ------- ANGSD: 
 
 # install xz first from https://tukaani.org/xz/

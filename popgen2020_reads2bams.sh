@@ -212,15 +212,6 @@ cat maps.e*
     2596129 (49.04%) aligned >1 times
 80.05% overall alignment rate
 
-# next stage is compressing, sorting and indexing the SAM files, so they become BAM files:
-module load samtools
->s2b
-for file in *.sam; do
-echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
-done
-
-ls5_launcher_creator.py -j s2b -n s2b -t 1:00:00 -w 24 -a tagmap -e youremail@utexas.edu -q normal
-sbatch s2b.slurm
 
 # sanity check: number of bam files should be the same number as number of sam files 
 ls *bam | wc -l  

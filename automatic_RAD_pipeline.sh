@@ -8,6 +8,12 @@ https://www.ncbi.nlm.nih.gov/books/NBK179288/
 # SRA toolkit (on TACC, pick the one for ubuntu 64):
 https://github.com/ncbi/sra-tools/wiki/02.-Installing-SRA-Toolkit
 
+#--------- cd-hit:
+
+git clone https://github.com/weizhongli/cdhit.git
+cd cdhit
+make
+
 # ------- ANGSD: 
 
 # install xz first from https://tukaani.org/xz/
