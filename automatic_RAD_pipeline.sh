@@ -140,52 +140,68 @@ mapsjob=$(sbatch --dependency=afterok:$mergejob  maps.slurm | grep "Submitted ba
 
 # quality assessment, removing bams with log(coverage)<3SD
 # also calculating minimum number of individuals(MI) a locus must be seen in (genotyping rate cutoff)
+# if you are mapping to a real genome, replace chr1 on line 146 by a name of a nice long contig (a few megabases). Look this up in a header of any of the *.sam files.
 FILTERSQ="-uniqueOnly 1 -remove_bads 1 -minMapQ 20"
 TODOQ="-doQsDist 1 -doDepth 1 -doCounts 1 -dumpCounts 2"
 echo "ls *.bam > bams && angsd -b bams -r chr1 -GL 1 $FILTERSQ $TODOQ -P 12 -out dd && Rscript ~/bin/plotQC.R dd >qualRanks">a0
 ls5_launcher_creator.py -j a0 -n a0 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 qjob=$(sbatch --dependency=afterok:$mapsjob a0.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
-#------------ examine dd.pdf, decide on MinIndPerc and whether bams.qc is reasonable
+#------------ 
+
+# examine qualRanks (ranked list of bams by coverage) and dd.pdf, decide on GRate
+# check if your bams.qc is not all NAs! this happens sometimes..
+# if it is, do this before proceeding:
+cp bams bams.qc
+# and then edit bams.qc in nano to remove bams that were severely under-sequenced (laccording to qualRanks and second plot in dd.pdf)  
 
 # ----------- CHUNK 3: getting popgen stats
 
+# obviously, edit the next line if you are mapping to real genome. 
 export GENOME_REF=all_cc.fasta
-export MinIndPerc=0.5
+# GRate is the genotyping rate, should be guided by the result of your quality assessment (dd.pdf, last graph)
+export GRate=0.75
 
 # initial IBS production, detecting and removing clones (see hctree.pdf and resulting bams.nr)
 FILTERS0='-minInd $MI -uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 20 -snp_pval 1e-5 -minMaf 0.05 -dosnpstat 1 -doHWE 1 -maxHetFreq 0.5 -hetbias_pval 1e-3 -skipTriallelic 1'
 TODO0='-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doPost 1 -doGlf 2'
-echo 'export NIND=`cat bams.qc | wc -l`; export MI=`echo "($NIND*$MinIndPerc+0.5)/1" | bc`' >calc1
+echo 'export NIND=`cat bams.qc | wc -l`; export MI=`echo "($NIND*$GRate+0.5)/1" | bc`' >calc1
 echo "source calc1 && angsd -b bams.qc -GL 1 $FILTERS0 $TODO0 -P 12 -out myresult && Rscript ~/bin/detect_clones.R bams.qc myresult.ibsMat 0.15">a1
 ls5_launcher_creator.py -j a1 -n a1 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
-a1job=$(sbatch --dependency=afterok:$qjob a1.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
-#a1job=$(sbatch a1.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
+#a1job=$(sbatch --dependency=afterok:$qjob a1.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
+a1job=$(sbatch a1.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
 # if "highly similar samples" were reported in a1.e* file, examine hctree.pdf and possibly rerun
 # Rscript ~/bin/detect_clones.R bams.qc myresult.ibsMat 0.15
-# with higher or lower cutoff instead of 0.15
+# with higher or lower cutoff instead of 0.15 depending on how hctree.pdf looks
 
 # final IBS production
 FILTERS1='-minInd $MI2 -uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 20 -snp_pval 1e-5 -minMaf 0.05 -dosnpstat 1 -doHWE 1 -maxHetFreq 0.5 -hetbias_pval 1e-3 -skipTriallelic 1'
 TODO1='-doMajorMinor 1 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doPost 1 -doGlf 2'
-echo 'cat bams.nr | sort > bams.NR && mv bams.NR bams.nr && export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND2*$MinIndPerc+0.5)/1" | bc`' >calc2
+echo 'cat bams.nr | sort > bams.NR && mv bams.NR bams.nr && export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND2*$GRate+0.5)/1" | bc`' >calc2
 echo "source calc2 && angsd -b bams.nr -GL 1 $FILTERS1 $TODO1 -P 12 -out myresult2 && Rscript ~/bin/pcaStructure.R myresult2.ibsMat > pcaStruc.txt">a2
 ls5_launcher_creator.py -j a2 -n a2 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 
 -q normal
-a2job=$(sbatch --dependency=afterok:$a1job a2.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
-#a2job=$(sbatch  a2.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
+#a2job=$(sbatch --dependency=afterok:$a1job a2.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
+a2job=$(sbatch  a2.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
+
+# cannibalize tracy_PCA.R to plot PCoA of the result.
 
 # ADMIXTURE
 echo 'for K in `seq 2 10` ; do  NGSadmix -likes myresult2.beagle.gz -K $K -P 12 -o mydata_k${K}; done' >adm
 ls5_launcher_creator.py -j adm -n adm -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 admjob=$(sbatch --dependency=afterok:$a2job adm.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
 
+# scp all *.qopt files to your laptop, use admixturePlotting_v5.R to plot. You will also need 2-column tab-delimited table of individual assignments to sampled locations; this must be in the same order as samples in the bam list. If there are no separate populations, make a table with just one dummy population. 
+# in lieu of population table you can supply the forced order of samples in the ADMIXTURE plot - consider ordering them by longitude or latitude.
+
+# --------- Popgen class: the following is probably not be necessary for you 
+
 # producing sfs for heterozygosity and theta (only for half a megabase of chr5, for speed and memory reasons)
 REF=all_cc.fasta
 FILTERS='-minInd $MI2 -uniqueOnly 1 -skipTriallelic 1 -minMapQ 20 -minQ 20 -doHWE 1 -maxHetFreq 0.5 -hetbias_pval 1e-3'
 TODO="-doSaf 1 -anc $REF -ref $REF -doMajorMinor 1 -doMaf 1 -dosnpstat 1 -doPost 1 -doGlf 2"
-echo 'export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND*$MinIndPerc+0.5)/1" | bc`' >calc2
+echo 'export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND*$GRate+0.5)/1" | bc`' >calc2
 echo "source calc2 && angsd -b bams.nr -r chr5:1-500000 -GL 1 -P 12 $FILTERS $TODO -out chr5">sfsj
 ls5_launcher_creator.py -j sfsj -n sfsj -t 2:00:00 -e matz@utexas.edu -w 1 -a tagmap -q normal
 sfsjob=$(sbatch --dependency=afterok:$a1job sfsj.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
@@ -210,7 +226,7 @@ grep "chr" chr5s.pestPG | awk '{ print $4/$14}'
 # rerunning with -doGeno 8 and -doGlf 3 for ngsLD, ngsRelate and ngsF
 FILTERS1='-minInd $MI2 -uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 20 -snp_pval 1e-5 -minMaf 0.05 -dosnpstat 1 -doHWE 1 -maxHetFreq 0.5 -hetbias_pval 1e-3 -skipTriallelic 1'
 TODO1='-doMajorMinor 1 -doMaf 1 -doCounts 1 -doPost 1 -doGlf 3'
-echo 'cat bams.nr | sort > bams.NR && mv bams.NR bams.nr && export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND2*$MinIndPerc+0.5)/1" | bc`' >calc2
+echo 'cat bams.nr | sort > bams.NR && mv bams.NR bams.nr && export NIND2=`cat bams.nr | wc -l`; export MI2=`echo "($NIND2*$GRate+0.5)/1" | bc`' >calc2
 echo "source calc2 && angsd -b bams.nr -GL 1 $FILTERS1 $TODO1 -P 12 -out g3">g3
 ls5_launcher_creator.py -j g3 -n g3 -a tagmap -e matz@utexas.edu -t 2:00:00 -w 1 -q normal
 g3job=$(sbatch g3.slurm | grep "Submitted batch job" | perl -pe 's/\D//g')
