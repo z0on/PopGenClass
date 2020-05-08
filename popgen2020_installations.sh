@@ -33,6 +33,7 @@ make CFLAGS=" -g -Wall -O2 -D_GNU_SOURCE -I$HOME/xz-5.2.4/include"
 
 # install ANGSD
 cd
+rm -rf angsd
 #git clone https://github.com/ANGSD/angsd.git 
 git clone --branch hetFilter https://github.com/nspope/angsd.git
 cd angsd
