@@ -2,7 +2,7 @@
 
 ### 1. Coalescent trees, Allele Frequency Spectra, and Demography
 
-[lecture slides](https://drive.google.com/open?id=1Aiy13-6XIQDQ6rlsIeTeRnFZuxu283wDJyukIr5oPV0)
+[lecture slides](https://drive.google.com/open?id=1Aiy13-6XIQDQ6rlsIeTeRnFZuxu283wDJyukIr5oPV0)\
 [coalescence-AFS lecture 2023](https://docs.google.com/presentation/d/16-mPMS7M1_UHbN7uW__WImbS4u4NV2jp6dyI5pPRJ-w/edit?usp=sharing)
 
 ### 2. Intro to HPC computing and genotyping
